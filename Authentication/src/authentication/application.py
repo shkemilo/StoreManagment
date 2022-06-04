@@ -32,7 +32,7 @@ def register():
         email=email, password=password,
         isCustomer=isCustomer)
 
-    return Response(result[1], http.HTTPStatus.OK if result[0] else http.HTTPStatus.BAD_REQUEST)
+    return Response(json.dump(result[1]), http.HTTPStatus.OK if result[0] else http.HTTPStatus.BAD_REQUEST)
 
 
 jwt = JWTManager(application)

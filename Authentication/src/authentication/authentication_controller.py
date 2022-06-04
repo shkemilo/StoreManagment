@@ -6,31 +6,40 @@ from commons.models import database, User, UserRole
 
 class AuthenticationController ():
     def register(self, forename: str, surname: str, email: str, password: str, isCustomer: bool):
+        result = {}
         if(forename == None or len(forename) == 0):
-            return [False, "Field forename is missing."]
+            result["message"] = "Field forename is missing."
+            return [False, result]
         if(surname == None or len(surname) == 0):
-            return [False, "Field surname is missing."]
+            result["message"] = "Field surname is missing."
+            return [False, result]
         if(email == None or len(email) == 0):
-            return [False, "Field email is missing."]
+            result["message"] = "Field email is missing."
+            return [False, result]
         if(password == None or len(password) == 0):
-            return [False, "Field password is missing."]
+            result["message"] = "Field password is missing."
+            return [False, result]
         if(isCustomer == None):
-            return [False, "Field isCustomer is missing."]
+            result["message"] = "Field isCustomer is missing."
+            return [False, result]
 
         parsedEmail = parseaddr(email)
         if (len(parsedEmail[1] == 0)):
-            return [False, "Invalid email."]
+            result["message"] = "Invalid email."
+            return [False, result]
 
         passwordOk = re.fullmatch(
             r'^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$',
             password)
         if(not passwordOk):
-            return [False, "Invalid password."]
+            result["message"] = "Invalid password."
+            return [False, result]
 
         emailFound = database.session.query(
             User).filter_by(email=email).first() != None
         if(emailFound):
-            return [False, "Email already exists."]
+            result["message"] = "Email already exists."
+            return [False, result]
 
         user = User(email=email, password=password,
                     forename=forename, surname=surname)
@@ -43,4 +52,5 @@ class AuthenticationController ():
         database.session.add(userRole)
         database.session.commit()
 
-        return [True, "Registration successful!"]
+        result["message"] = "Registration successful!"
+        return [True, result]
