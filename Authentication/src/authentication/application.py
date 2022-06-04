@@ -10,10 +10,10 @@ application.config.from_object(Configuration)
 
 
 @application.route('/')
-def helloWorld():
-    return 'Hello from {}!\n'.format(__name__)
+def index():
+    return 'Hello from the Authentication Service'
 
-
+#TODO: Encapsulate business logic into controller class
 @application.route("/register", methods=["POST"])
 def register():
     email = request.json.get("email", "")
@@ -76,5 +76,24 @@ def login():
     refreshToken = create_refresh_token(
         identity=user.email, additional_claims=additionalClaims)
 
-    # return Response ( accessToken, status = 200 );
     return jsonify(accessToken=accessToken, refreshToken=refreshToken)
+
+
+@application.route("/refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def refresh():
+    identity = get_jwt_identity()
+    refreshClaims = get_jwt()
+
+    additionalClaims = {
+        "forename": refreshClaims["forename"],
+        "surname": refreshClaims["surname"],
+        "roles": refreshClaims["roles"]
+    }
+
+    return Response(create_access_token(identity=identity, additional_claims=additionalClaims), status=200)
+
+
+if (__name__ == "__main__"):
+    database.init_app(application)
+    application.run(debug=True, host="0.0.0.0", port=5002)
