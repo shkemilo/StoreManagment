@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+      - authentication_network
+
+  authenticationDB:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 10
+    networks:
+      - authentication_network
+
+  authenticationDBMigration:
+    build: 
+      context: .
+      dockerfile: authenticationdbmigration.dockerfile
+    image: authenticationdbmigration
+    environment:
+      - DATABASE_URL=authenticationDB
+    networks:
+      - authentication_network
+    
+  authentication:
+    build: 
+      context: .
+      dockerfile: authentication.dockerfile
+    image: authentication
+    environment:
+      - DATABASE_URL=authenticationDB
+    ports:
+      - 5000:5000
+    networks:
+      - authentication_network
+
+volumes:
+  db-data:
+
+networks:
+  authentication_network:
