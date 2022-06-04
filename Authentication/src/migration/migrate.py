@@ -27,10 +27,13 @@ while (not done):
             upgrade()
 
             adminRole = Role(name="admin")
-            userRole = Role(name="user")
+            customerRole = Role(name="customer")
+            workerRole = Role(name="worker")
+            
 
             database.session.add(adminRole)
-            database.session.add(userRole)
+            database.session.add(customerRole)
+            database.session.add(workerRole)
             database.session.commit()
 
             admin = User(

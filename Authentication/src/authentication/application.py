@@ -1,9 +1,12 @@
 from email.utils import parseaddr
+import json
 from operator import and_
 from flask import Flask, Response, jsonify, request
+from Authentication.src.authentication.authentication_controller import AuthenticationController
 from commons.models import database, User, UserRole
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, create_refresh_token, get_jwt, get_jwt_identity
 from commons.configuration import Configuration
+import http
 
 application = Flask(__name__)
 application.config.from_object(Configuration)
@@ -13,36 +16,23 @@ application.config.from_object(Configuration)
 def index():
     return 'Hello from the Authentication Service'
 
-#TODO: Encapsulate business logic into controller class
+# TODO: Encapsulate business logic into controller class
+
+
 @application.route("/register", methods=["POST"])
 def register():
     email = request.json.get("email", "")
     password = request.json.get("password", "")
     forename = request.json.get("forename", "")
     surname = request.json.get("surname", "")
+    isCustomer = request.json.get("isCustomer", "")
 
-    emailEmpty = len(email) == 0
-    passwordEmpty = len(password) == 0
-    forenameEmpty = len(forename) == 0
-    surnameEmpty = len(surname) == 0
+    result = AuthenticationController.register(
+        forename=forename, surname=surname,
+        email=email, password=password,
+        isCustomer=isCustomer)
 
-    if (emailEmpty or passwordEmpty or forenameEmpty or surnameEmpty):
-        return Response("All fields required!", status=400)
-
-    result = parseaddr(email)
-    if (len(result[1]) == 0):
-        return Response("Email invalid!", status=400)
-
-    user = User(email=email, password=password,
-                forename=forename, surname=surname)
-    database.session.add(user)
-    database.session.commit()
-
-    userRole = UserRole(userId=user.id, roleId=2)
-    database.session.add(userRole)
-    database.session.commit()
-
-    return Response("Registration successful!", status=200)
+    return Response(result[1], http.HTTPStatus.OK if result[0] else http.HTTPStatus.BAD_REQUEST)
 
 
 jwt = JWTManager(application)
