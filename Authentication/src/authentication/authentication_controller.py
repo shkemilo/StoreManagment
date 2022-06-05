@@ -1,10 +1,11 @@
 from email.utils import parseaddr
 import re
 from flask import jsonify
+import flask
 from flask_jwt_extended import create_access_token, create_refresh_token
 
 from sqlalchemy import and_
-from authentication_exceptions import BadRequestException
+from authentication_exceptions import BadRequestException, NotAuthorizedException
 
 from commons.models import database, User, UserRole
 
@@ -59,7 +60,6 @@ class AuthenticationController ():
 
         user = User.query.filter(
             and_(User.email == email, User.password == password)).first()
-
         if (not user):
             raise BadRequestException("Invalid credentials.")
 
@@ -75,3 +75,21 @@ class AuthenticationController ():
             identity=user.email, additional_claims=additionalClaims)
 
         return {"accessToken": accessToken, "refreshToken": refreshToken}
+
+    def delete(roles, email):
+        if(email == None or len(email) == 0):
+            raise BadRequestException("Field email is missing.")
+
+        if(not "admin" in roles):
+            raise NotAuthorizedException("User not authorized for this request.")
+
+        parsedEmail = parseaddr(email)
+        if (len(parsedEmail[1]) == 0):
+            raise BadRequestException("Invalid email.")
+
+        targetUser = User.query.filter(User.email == email).first()
+        if(not targetUser):
+            raise BadRequestException("Unknown user.")
+
+        database.session.delete(targetUser)
+        database.session.commit()

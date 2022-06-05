@@ -2,7 +2,7 @@ import json
 from turtle import ht
 from flask import Flask, Response, jsonify, request
 from authentication_controller import AuthenticationController
-from authentication_exceptions import BadRequestException
+from authentication_exceptions import BadRequestException, NotAuthorizedException
 from commons.models import database
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, create_refresh_token, get_jwt, get_jwt_identity
 from commons.configuration import Configuration
@@ -33,10 +33,7 @@ def register():
             email=email, password=password,
             isCustomer=isCustomer)
     except BadRequestException as ex:
-        print(ex)
         return jsonify(message=str(ex)), http.HTTPStatus.BAD_REQUEST
-
-    print("OK")
 
     return Response(status=http.HTTPStatus.OK)
 
@@ -53,10 +50,7 @@ def login():
     try:
         result = AuthenticationController.login(email=email, password=password)
     except BadRequestException as ex:
-        print(ex)
         return jsonify(message=str(ex)), http.HTTPStatus.BAD_REQUEST
-
-    print("OK")
 
     return jsonify(result), http.HTTPStatus.OK
 
@@ -74,6 +68,24 @@ def refresh():
     }
 
     return Response(create_access_token(identity=identity, additional_claims=additionalClaims), status=http.HTTPStatus.OK)
+
+
+@application.route("/delete", methods=["POST"])
+@jwt_required()
+def delete():
+    accessClaims = get_jwt()
+    roles = accessClaims["roles"]
+    email = request.json.get("email", "")
+
+    try:
+        AuthenticationController.delete(roles=roles, email=email)
+    except BadRequestException as ex:
+        return jsonify(message=str(ex)), http.HTTPStatus.BAD_REQUEST
+    except NotAuthorizedException as ex:
+        return jsonify(message=str(ex)), http.HTTPStatus.UNAUTHORIZED
+        
+    
+    return Response(status=http.HTTPStatus.OK)
 
 
 if (__name__ == "__main__"):
