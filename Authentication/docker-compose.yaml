@@ -19,7 +19,7 @@ services:
       - authentication_network
 
   authenticationDBMigration:
-    build: 
+    build:
       context: .
       dockerfile: authenticationdbmigration.dockerfile
     image: authenticationdbmigration
@@ -27,9 +27,9 @@ services:
       - DATABASE_URL=authenticationDB
     networks:
       - authentication_network
-    
+
   authentication:
-    build: 
+    build:
       context: .
       dockerfile: authentication.dockerfile
     image: authentication
@@ -44,6 +44,7 @@ services:
 
 volumes:
   db-data:
+
 
 networks:
   authentication_network:

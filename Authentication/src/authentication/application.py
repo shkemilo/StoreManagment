@@ -83,8 +83,7 @@ def delete():
         return jsonify(message=str(ex)), http.HTTPStatus.BAD_REQUEST
     except NotAuthorizedException as ex:
         return jsonify(message=str(ex)), http.HTTPStatus.UNAUTHORIZED
-        
-    
+
     return Response(status=http.HTTPStatus.OK)
 
 
