@@ -54,7 +54,7 @@ class AuthenticationController ():
             raise BadRequestException("Field password is missing.")
 
         parsedEmail = parseaddr(email)
-        if (len(parsedEmail[1] == 0)):
+        if (len(parsedEmail[1]) == 0):
             raise BadRequestException("Invalid email.")
 
         user = User.query.filter(
@@ -74,4 +74,4 @@ class AuthenticationController ():
         refreshToken = create_refresh_token(
             identity=user.email, additional_claims=additionalClaims)
 
-        return jsonify(accessToken=accessToken, refreshToken=refreshToken)
+        return {"accessToken": accessToken, "refreshToken": refreshToken}

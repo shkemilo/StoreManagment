@@ -1,3 +1,4 @@
+import json
 from turtle import ht
 from flask import Flask, Response, jsonify, request
 from authentication_controller import AuthenticationController
@@ -32,7 +33,10 @@ def register():
             email=email, password=password,
             isCustomer=isCustomer)
     except BadRequestException as ex:
-        return Response(response=jsonify(message=str(ex)), status=http.HTTPStatus.BAD_REQUEST)
+        print(ex)
+        return jsonify(message=str(ex)), http.HTTPStatus.BAD_REQUEST
+
+    print("OK")
 
     return Response(status=http.HTTPStatus.OK)
 
@@ -45,13 +49,16 @@ def login():
     email = request.json.get("email", "")
     password = request.json.get("password", "")
 
-    result
+    result = None
     try:
         result = AuthenticationController.login(email=email, password=password)
     except BadRequestException as ex:
-        return Response(jsonify(message=str(ex)), status=http.HTTPStatus.BAD_REQUEST)
+        print(ex)
+        return jsonify(message=str(ex)), http.HTTPStatus.BAD_REQUEST
 
-    return Response(result, status=http.HTTPStatus.OK)
+    print("OK")
+
+    return jsonify(result), http.HTTPStatus.OK
 
 
 @application.route("/refresh", methods=["POST"])

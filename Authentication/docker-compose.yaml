@@ -40,7 +40,7 @@ services:
     environment:
       - DATABASE_URL=authenticationDB
     ports:
-      - 5000:5000
+      - 5002:5002
     networks:
       - authentication_network
 

@@ -17,14 +17,16 @@ while (not done):
         if (not database_exists(application.config["SQLALCHEMY_DATABASE_URI"])):
             create_database(application.config["SQLALCHEMY_DATABASE_URI"])
 
-        print("Migrations starting")
-
         database.init_app(application)
 
         with application.app_context() as context:
+            print("Migrations starting")
+
             init()
             migrate(message="Production migration")
             upgrade()
+
+            print("Upgrade done")
 
             adminRole = Role(name="admin")
             customerRole = Role(name="customer")
@@ -62,3 +64,4 @@ while (not done):
             done = True
     except Exception as error:
         print(error)
+        sleep(1)
