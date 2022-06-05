@@ -1,22 +1,24 @@
-import json
-from turtle import ht
+import logging
+from time import sleep
 from flask import Flask, Response, jsonify, request
 from authentication_controller import AuthenticationController
 from authentication_exceptions import BadRequestException, NotAuthorizedException
 from commons.models import database
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, create_refresh_token, get_jwt, get_jwt_identity
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt, get_jwt_identity
 from commons.configuration import Configuration
 import http
+from sqlalchemy_utils import database_exists, create_database
+from database_init import init_db
 
 application = Flask(__name__)
 application.config.from_object(Configuration)
+
+application.logger.setLevel(logging.INFO)
 
 
 @application.route('/')
 def index():
     return 'Hello from the Authentication Service'
-
-# TODO: Encapsulate business logic into controller class
 
 
 @application.route("/register", methods=["POST"])
@@ -88,5 +90,27 @@ def delete():
 
 
 if (__name__ == "__main__"):
+    done = False
+    initRequired = True
+    while(not done):
+        try:
+            if (not database_exists(application.config["SQLALCHEMY_DATABASE_URI"])):
+                create_database(application.config["SQLALCHEMY_DATABASE_URI"])
+            else:
+                initRequired = False
+
+            done = True
+        except Exception as ex:
+            application.logger.info(
+                "Database didn't respond. Try again in 1 sec.")
+            sleep(1)
+
+    application.logger.info("Authorization service is starting")
     database.init_app(application)
+
+    if(initRequired):
+        application.logger.info(
+            "Database was found empty. Initalization process starting")
+        init_db(application)
+
     application.run(debug=True, host="0.0.0.0", port=5002)

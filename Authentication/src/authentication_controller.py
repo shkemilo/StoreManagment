@@ -1,12 +1,8 @@
 from email.utils import parseaddr
 import re
-from flask import jsonify
-import flask
 from flask_jwt_extended import create_access_token, create_refresh_token
-
 from sqlalchemy import and_
 from authentication_exceptions import BadRequestException, NotAuthorizedException
-
 from commons.models import database, User, UserRole
 
 
@@ -81,7 +77,8 @@ class AuthenticationController ():
             raise BadRequestException("Field email is missing.")
 
         if(not "admin" in roles):
-            raise NotAuthorizedException("User not authorized for this request.")
+            raise NotAuthorizedException(
+                "User not authorized for this request.")
 
         parsedEmail = parseaddr(email)
         if (len(parsedEmail[1]) == 0):

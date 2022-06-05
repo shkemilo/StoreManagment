@@ -18,23 +18,11 @@ services:
     networks:
       - authentication_network
 
-  authenticationDBMigration:
-    build:
-      context: ./Authentication
-      dockerfile: authenticationdbmigration.dockerfile
-    image: authenticationdbmigration
-    environment:
-      - DATABASE_URL=authenticationDB
-    networks:
-      - authentication_network
-
   authentication:
     build:
       context: ./Authentication
       dockerfile: authentication.dockerfile
     image: authentication
-    depends_on:
-      - authenticationDBMigration
     environment:
       - DATABASE_URL=authenticationDB
     ports:
