@@ -20,7 +20,7 @@ services:
 
   authenticationDBMigration:
     build:
-      context: .
+      context: ./Authentication
       dockerfile: authenticationdbmigration.dockerfile
     image: authenticationdbmigration
     environment:
@@ -30,7 +30,7 @@ services:
 
   authentication:
     build:
-      context: .
+      context: ./Authentication
       dockerfile: authentication.dockerfile
     image: authentication
     depends_on:
