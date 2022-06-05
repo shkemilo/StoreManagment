@@ -1,45 +1,40 @@
 from email.utils import parseaddr
 import re
+from flask import jsonify
+from flask_jwt_extended import create_access_token, create_refresh_token
+
+from sqlalchemy import and_
+from authentication_exceptions import BadRequestException
 
 from commons.models import database, User, UserRole
 
 
 class AuthenticationController ():
-    def register(self, forename: str, surname: str, email: str, password: str, isCustomer: bool):
-        result = {}
+    def register(forename: str, surname: str, email: str, password: str, isCustomer: bool):
         if(forename == None or len(forename) == 0):
-            result["message"] = "Field forename is missing."
-            return [False, result]
+            raise BadRequestException("Field forename is missing.")
         if(surname == None or len(surname) == 0):
-            result["message"] = "Field surname is missing."
-            return [False, result]
+            raise BadRequestException("Field surname is missing.")
         if(email == None or len(email) == 0):
-            result["message"] = "Field email is missing."
-            return [False, result]
+            raise BadRequestException("Field email is missing.")
         if(password == None or len(password) == 0):
-            result["message"] = "Field password is missing."
-            return [False, result]
+            raise BadRequestException("Field password is missing.")
         if(isCustomer == None):
-            result["message"] = "Field isCustomer is missing."
-            return [False, result]
+            raise BadRequestException("Field isCustomer is missing.")
 
         parsedEmail = parseaddr(email)
-        if (len(parsedEmail[1] == 0)):
-            result["message"] = "Invalid email."
-            return [False, result]
+        if (len(parsedEmail[1]) == 0):
+            raise BadRequestException("Invalid email.")
 
         passwordOk = re.fullmatch(
             r'^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$',
             password)
         if(not passwordOk):
-            result["message"] = "Invalid password."
-            return [False, result]
+            raise BadRequestException("Invalid password.")
 
-        emailFound = database.session.query(
-            User).filter_by(email=email).first() != None
+        emailFound = User.query.filter(User.email == email).first()
         if(emailFound):
-            result["message"] = "Email already exists."
-            return [False, result]
+            raise BadRequestException("Email already exists.")
 
         user = User(email=email, password=password,
                     forename=forename, surname=surname)
@@ -52,5 +47,31 @@ class AuthenticationController ():
         database.session.add(userRole)
         database.session.commit()
 
-        result["message"] = "Registration successful!"
-        return [True, result]
+    def login(email: str, password: str):
+        if(email == None or len(email) == 0):
+            raise BadRequestException("Field email is missing.")
+        if(password == None or len(password) == 0):
+            raise BadRequestException("Field password is missing.")
+
+        parsedEmail = parseaddr(email)
+        if (len(parsedEmail[1] == 0)):
+            raise BadRequestException("Invalid email.")
+
+        user = User.query.filter(
+            and_(User.email == email, User.password == password)).first()
+
+        if (not user):
+            raise BadRequestException("Invalid credentials.")
+
+        additionalClaims = {
+            "forename": user.forename,
+            "surname": user.surname,
+            "roles": [str(role) for role in user.roles]
+        }
+
+        accessToken = create_access_token(
+            identity=user.email, additional_claims=additionalClaims)
+        refreshToken = create_refresh_token(
+            identity=user.email, additional_claims=additionalClaims)
+
+        return jsonify(accessToken=accessToken, refreshToken=refreshToken)

@@ -1,9 +1,8 @@
-from email.utils import parseaddr
-import json
-from operator import and_
+from turtle import ht
 from flask import Flask, Response, jsonify, request
-from Authentication.src.authentication.authentication_controller import AuthenticationController
-from commons.models import database, User, UserRole
+from authentication_controller import AuthenticationController
+from authentication_exceptions import BadRequestException
+from commons.models import database
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, create_refresh_token, get_jwt, get_jwt_identity
 from commons.configuration import Configuration
 import http
@@ -27,12 +26,15 @@ def register():
     surname = request.json.get("surname", "")
     isCustomer = request.json.get("isCustomer", "")
 
-    result = AuthenticationController.register(
-        forename=forename, surname=surname,
-        email=email, password=password,
-        isCustomer=isCustomer)
+    try:
+        AuthenticationController.register(
+            forename=forename, surname=surname,
+            email=email, password=password,
+            isCustomer=isCustomer)
+    except BadRequestException as ex:
+        return Response(response=jsonify(message=str(ex)), status=http.HTTPStatus.BAD_REQUEST)
 
-    return Response(json.dump(result[1]), http.HTTPStatus.OK if result[0] else http.HTTPStatus.BAD_REQUEST)
+    return Response(status=http.HTTPStatus.OK)
 
 
 jwt = JWTManager(application)
@@ -43,30 +45,13 @@ def login():
     email = request.json.get("email", "")
     password = request.json.get("password", "")
 
-    emailEmpty = len(email) == 0
-    passwordEmpty = len(password) == 0
+    result
+    try:
+        result = AuthenticationController.login(email=email, password=password)
+    except BadRequestException as ex:
+        return Response(jsonify(message=str(ex)), status=http.HTTPStatus.BAD_REQUEST)
 
-    if (emailEmpty or passwordEmpty):
-        return Response("All fields required!", status=400)
-
-    user = User.query.filter(
-        and_(User.email == email, User.password == password)).first()
-
-    if (not user):
-        return Response("Invalid credentials!", status=400)
-
-    additionalClaims = {
-        "forename": user.forename,
-        "surname": user.surname,
-        "roles": [str(role) for role in user.roles]
-    }
-
-    accessToken = create_access_token(
-        identity=user.email, additional_claims=additionalClaims)
-    refreshToken = create_refresh_token(
-        identity=user.email, additional_claims=additionalClaims)
-
-    return jsonify(accessToken=accessToken, refreshToken=refreshToken)
+    return Response(result, status=http.HTTPStatus.OK)
 
 
 @application.route("/refresh", methods=["POST"])
@@ -81,7 +66,7 @@ def refresh():
         "roles": refreshClaims["roles"]
     }
 
-    return Response(create_access_token(identity=identity, additional_claims=additionalClaims), status=200)
+    return Response(create_access_token(identity=identity, additional_claims=additionalClaims), status=http.HTTPStatus.OK)
 
 
 if (__name__ == "__main__"):

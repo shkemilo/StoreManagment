@@ -35,6 +35,8 @@ services:
       context: .
       dockerfile: authentication.dockerfile
     image: authentication
+    depends_on:
+      - authenticationDBMigration
     environment:
       - DATABASE_URL=authenticationDB
     ports:

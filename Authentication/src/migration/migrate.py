@@ -29,12 +29,13 @@ while (not done):
             adminRole = Role(name="admin")
             customerRole = Role(name="customer")
             workerRole = Role(name="worker")
-            
 
             database.session.add(adminRole)
             database.session.add(customerRole)
             database.session.add(workerRole)
             database.session.commit()
+
+            print("Added roles")
 
             admin = User(
                 email="admin@admin.com",
@@ -46,14 +47,18 @@ while (not done):
             database.session.add(admin)
             database.session.commit()
 
+            print("Added admin")
+
             userRole = UserRole(
                 userId=admin.id,
                 roleId=adminRole.id
             )
+
+            database.session.add(userRole)
+            database.session.commit()
 
             print("Migrations Finished")
 
             done = True
     except Exception as error:
         print(error)
-        sleep(1)
