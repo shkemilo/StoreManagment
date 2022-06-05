@@ -2,10 +2,11 @@ import logging
 from time import sleep
 from flask import Flask, Response, jsonify, request
 from authentication_controller import AuthenticationController
-from authentication_exceptions import BadRequestException, NotAuthorizedException
-from commons.models import database
+from Commons.exceptions import BadRequestException
+from Commons.role_checker import role_check
+from Authentication.models import database
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt, get_jwt_identity
-from commons.configuration import Configuration
+from Authentication.configuration import Configuration
 import http
 from sqlalchemy_utils import database_exists, create_database
 from database_init import init_db
@@ -74,17 +75,14 @@ def refresh():
 
 @application.route("/delete", methods=["POST"])
 @jwt_required()
+@role_check(role="admin")
 def delete():
-    accessClaims = get_jwt()
-    roles = accessClaims["roles"]
     email = request.json.get("email", "")
 
     try:
-        AuthenticationController.delete(roles=roles, email=email)
+        AuthenticationController.delete(email=email)
     except BadRequestException as ex:
         return jsonify(message=str(ex)), http.HTTPStatus.BAD_REQUEST
-    except NotAuthorizedException as ex:
-        return jsonify(message=str(ex)), http.HTTPStatus.UNAUTHORIZED
 
     return Response(status=http.HTTPStatus.OK)
 

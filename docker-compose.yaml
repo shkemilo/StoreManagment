@@ -8,9 +8,11 @@ services:
       - 8080:8080
     networks:
       - authentication_network
+      - store_network
 
   authenticationDB:
     image: mysql
+    restart: always
     environment:
       - MYSQL_ROOT_PASSWORD=root
     volumes:
@@ -20,9 +22,10 @@ services:
 
   authentication:
     build:
-      context: ./Authentication
+      context: .
       dockerfile: authentication.dockerfile
     image: authentication
+    restart: always
     environment:
       - DATABASE_URL=authenticationDB
     ports:
@@ -30,9 +33,29 @@ services:
     networks:
       - authentication_network
 
+  redis:
+    image: redis
+    restart: always
+    ports:
+    - 6379:6379
+    networks:
+      - store_network
+    
+  warehouse:
+    build:
+      context: .
+      dockerfile: warehouse.dockerfile
+    image: warehouse
+    restart: always
+    ports:
+      - 5003:5003
+    networks:
+      - store_network
+
 volumes:
   db-data:
 
 
 networks:
   authentication_network:
+  store_network:

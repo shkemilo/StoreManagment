@@ -1,9 +1,9 @@
-from commons.models import database
+from Authentication.models import database
 
 
 def init_db(application):
     with application.app_context() as context:
-        from commons.models import User, Role, UserRole
+        from Authentication.models import User, Role, UserRole
 
         application.logger.info("Database initalization starting")
 

@@ -2,8 +2,8 @@ from email.utils import parseaddr
 import re
 from flask_jwt_extended import create_access_token, create_refresh_token
 from sqlalchemy import and_
-from authentication_exceptions import BadRequestException, NotAuthorizedException
-from commons.models import database, User, UserRole
+from Commons.exceptions import BadRequestException
+from Authentication.models import database, User, UserRole
 
 
 class AuthenticationController ():
@@ -72,13 +72,9 @@ class AuthenticationController ():
 
         return {"accessToken": accessToken, "refreshToken": refreshToken}
 
-    def delete(roles, email):
+    def delete(email):
         if(email == None or len(email) == 0):
             raise BadRequestException("Field email is missing.")
-
-        if(not "admin" in roles):
-            raise NotAuthorizedException(
-                "User not authorized for this request.")
 
         parsedEmail = parseaddr(email)
         if (len(parsedEmail[1]) == 0):
