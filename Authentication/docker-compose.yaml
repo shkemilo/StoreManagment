@@ -13,10 +13,8 @@ services:
     image: mysql
     environment:
       - MYSQL_ROOT_PASSWORD=root
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 10s
-      retries: 10
+    volumes:
+      - db-data:/var/lib/mysql
     networks:
       - authentication_network
 
