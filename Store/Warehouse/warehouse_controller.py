@@ -1,5 +1,6 @@
 import csv
 import io
+import json
 from redis import Redis
 
 from Commons.exceptions import BadRequestException
@@ -19,8 +20,9 @@ class WarehouseController():
         products = WarehouseController.getProductsFromFile(reader)
 
         with Redis(host=Configuration.REDIS_HOST) as redis:
-            redis.rpush(Configuration.REDIS_PRODUCTS_LIST, products)
-
+            for product in products:
+                redis.rpush(Configuration.REDIS_PRODUCTS_LIST, json.dump(product))
+            
     def getProductsFromFile(reader):
         products = []
         currentLine = 0

@@ -16,7 +16,7 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=root
     volumes:
-      - db-data:/var/lib/mysql
+      - authentication-db-data:/var/lib/mysql
     networks:
       - authentication_network
 
@@ -37,10 +37,10 @@ services:
     image: redis
     restart: always
     ports:
-    - 6379:6379
+      - 6379:6379
     networks:
-      - store_network
-    
+      - products_ingester_network
+
   warehouse:
     build:
       context: .
@@ -50,12 +50,38 @@ services:
     ports:
       - 5003:5003
     networks:
+      - products_ingester_network
+
+  daemon:
+    build:
+      context: .
+      dockerfile: warehouse.dockerfile
+    image: daemon
+    restart: always
+    environment:
+      - DATABASE_URL=storeDB
+    ports:
+      - 5004:5004
+    networks:
+      - products_ingester_network
+      - store_network
+
+  storeDB:
+    image: mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    volumes:
+      - store-db-data:/var/lib/mysql
+    networks:
       - store_network
 
 volumes:
-  db-data:
+  authentication-db-data:
+  store-db-data:
 
 
 networks:
   authentication_network:
   store_network:
+  products_ingester_network:

@@ -4,7 +4,6 @@ RUN mkdir -p /opt/src/store/warehouse
 WORKDIR /opt/src/store/warehouse
 
 COPY Commons Commons
-COPY Store/Commons Store/Commons
 COPY Store/Warehouse Store/Warehouse
 
 RUN pip install -r Store/Warehouse/requirements.txt

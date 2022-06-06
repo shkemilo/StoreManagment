@@ -1,3 +1,4 @@
+from enum import unique
 from flask_sqlalchemy import SQLAlchemy
 
 database = SQLAlchemy()
@@ -32,7 +33,7 @@ class Cateogry (database.Model):
 
     id = database.Column(database.Integer, primary_key=True)
 
-    name = database.Column(database.String(256), nullable=False)
+    name = database.Column(database.String(256), nullable=False, unique=True)
 
     products = database.relationship(
         "Product", secondary=ProductCategory.__table__, back_populates="categories")

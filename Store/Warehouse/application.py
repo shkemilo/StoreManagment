@@ -11,10 +11,9 @@ from Store.Warehouse.warehouse_controller import WarehouseController
 
 application = Flask(__name__)
 application.config.from_object(Configuration)
-
-jwt = JWTManager(application)
 application.logger.setLevel(logging.INFO)
 
+jwt = JWTManager(application)
 
 @application.route('/')
 def index():
