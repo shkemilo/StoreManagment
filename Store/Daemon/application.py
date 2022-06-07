@@ -10,13 +10,16 @@ application = Flask(__name__)
 application.config.from_object(Configuration)
 application.logger.setLevel(logging.INFO)
 
+
 @application.route('/')
 def index():
     return 'Hello from the Daemon Service!'
 
-if (__name__ == "__main__"):
-    application.run(debug=True, host="0.0.0.0", port=5004)
 
-    productConsumerThread = threading.Thread(name="product_consumer", target=DaemonController.consumeProducts)
-    productConsumerThread.setDaemon(True)
+if (__name__ == "__main__"):
+    productConsumerThread = threading.Thread(
+        name="product_consumer", target=DaemonController.consumeProducts, args=(application,))
+    productConsumerThread.daemon = True
     productConsumerThread.start()
+
+    application.run(debug=True, host="0.0.0.0", port=5004)

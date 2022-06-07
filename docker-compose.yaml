@@ -47,6 +47,8 @@ services:
       dockerfile: warehouse.dockerfile
     image: warehouse
     restart: always
+    environment:
+      - DATABASE_URL=storeDB
     ports:
       - 5003:5003
     networks:
@@ -55,7 +57,7 @@ services:
   daemon:
     build:
       context: .
-      dockerfile: warehouse.dockerfile
+      dockerfile: daemon.dockerfile
     image: daemon
     restart: always
     environment:
