@@ -16,7 +16,8 @@ class DaemonController():
                 application.logger.info('Wating for product.')
                 productJson = None
                 with Redis(host=Configuration.REDIS_HOST) as redis:
-                    productJson = redis.blpop(Configuration.REDIS_PRODUCTS_LIST)[1]
+                    productJson = redis.blpop(
+                        Configuration.REDIS_PRODUCTS_LIST)[1]
                 application.logger.info('Product consumed.')
 
                 productData = json.loads(productJson)
@@ -27,6 +28,9 @@ class DaemonController():
 
                 product = Product.query.filter(Product.name == name).first()
                 if(not product):
+                    application.logger.info(
+                        'Product not in DB. Create new product.')
+
                     product = Product(
                         name=name, quantity=quantity, price=price)
                     database.session.add(product)
@@ -46,7 +50,11 @@ class DaemonController():
                         database.session.add(productCategory)
                         database.session.commit()
                 else:
-                    if(set(product.categories) != set(categories)):
+                    application.logger.info('Product in DB. Update product.')
+
+                    if(set([category.name for category in product.categories]) != set(categories)):
+                        application.logger.warning(
+                            'Different product categories in input. Discarding product update.')
                         continue
 
                     product.price = DaemonController.calculateNewPrice(
