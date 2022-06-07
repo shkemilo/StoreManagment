@@ -1,4 +1,3 @@
-from enum import unique
 from flask_sqlalchemy import SQLAlchemy
 
 database = SQLAlchemy()
@@ -28,7 +27,7 @@ class Product (database.Model):
         "Category", secondary=ProductCategory.__table__, back_populates="products")
 
 
-class Cateogry (database.Model):
+class Category (database.Model):
     __tablename__ = "category"
 
     id = database.Column(database.Integer, primary_key=True)

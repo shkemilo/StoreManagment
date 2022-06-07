@@ -1,7 +1,7 @@
 import json
 import flask
 from redis import Redis
-from Store.Commons.models import Cateogry, Product, ProductCategory, database
+from Store.Commons.models import Category, Product, ProductCategory, database
 
 from Store.Daemon.configuration import Configuration
 
@@ -16,9 +16,10 @@ class DaemonController():
                 application.logger.info('Wating for product.')
                 productJson = None
                 with Redis(host=Configuration.REDIS_HOST) as redis:
-                    productJson = redis.blpop(Configuration.REDIS_HOST)
+                    productJson = redis.blpop(Configuration.REDIS_PRODUCTS_LIST)[1]
+                application.logger.info('Product consumed.')
 
-                productData = json.load(productJson)
+                productData = json.loads(productJson)
                 name = productData['name']
                 quantity = productData['quantity']
                 price = productData['price']
@@ -32,11 +33,11 @@ class DaemonController():
                     database.session.commit()
 
                     for categoryName in categories:
-                        category = Cateogry.query.filter(
-                            Cateogry.name == categoryName).first()
+                        category = Category.query.filter(
+                            Category.name == categoryName).first()
 
                         if (not category):
-                            category = Cateogry(name=categoryName)
+                            category = Category(name=categoryName)
                             database.session.add(category)
                             database.session.commit()
 
