@@ -62,6 +62,7 @@ class AuthenticationController ():
         additionalClaims = {
             "forename": user.forename,
             "surname": user.surname,
+            "email": user.email,
             "roles": [str(role) for role in user.roles]
         }
 

@@ -25,7 +25,11 @@ class ProductOrder (database.Model):
     orderId = database.Column(
         database.Integer, database.ForeignKey("order.id"), nullable=False)
 
-    quantity = database.Column(database.Integer, nullable=False)
+    price = database.Column(database.Float, nullable=False)
+    received = database.Column(database.Integer, nullable=False)
+    requested = database.Column(database.Integer, nullable=False)
+
+    status = database.Column(database.String(256), nullable=False)
 
 
 class Product (database.Model):
@@ -65,6 +69,10 @@ class Order (database.Model):
     __tablename__ = "order"
 
     id = database.Column(database.Integer, primary_key=True)
+
+    customerEmail = database.Column(database.String(256), nullable=False)
+
+    timestamp = database.Column(database.DateTime, nullable=False)
 
     products = database.relationship(
         "Product", secondary=ProductOrder.__table__, back_populates="orders")

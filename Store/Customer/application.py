@@ -1,7 +1,7 @@
 import http
 import logging
 from flask import Flask, jsonify, request
-from flask_jwt_extended import JWTManager, jwt_required
+from flask_jwt_extended import JWTManager, jwt_required, get_jwt
 from Commons.exceptions import BadRequestException
 
 from Commons.role_checker import role_check
@@ -39,14 +39,21 @@ def serach():
 @role_check(role="customer")
 def order():
     requests = request.json.get("requests", "")
+    customerEmail = get_jwt()['email']
 
     result
     try:
-        result = CustomerController.order(requests)
+        result = CustomerController.order(customerEmail, requests)
     except BadRequestException as ex:
         return jsonify(message=str(ex)), http.HTTPStatus.BAD_REQUEST
 
     return jsonify(id=result), http.HTTPStatus.OK
+
+@application.route('/status', methods=['POST'])
+@jwt_required()
+@role_check(role="customer")
+def status():
+    pass
 
 
 if (__name__ == "__main__"):

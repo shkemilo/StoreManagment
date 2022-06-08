@@ -67,6 +67,7 @@ def refresh():
     additionalClaims = {
         "forename": refreshClaims["forename"],
         "surname": refreshClaims["surname"],
+        "email": refreshClaims["email"],
         "roles": refreshClaims["roles"]
     }
 

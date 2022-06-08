@@ -1,4 +1,5 @@
 from curses.ascii import isdigit
+from datetime import datetime
 from Commons.exceptions import BadRequestException
 from Store.Commons.models import Category, Order, Product, ProductOrder, database
 
@@ -20,11 +21,54 @@ class CustomerController ():
 
         return {"categories": [category.name for category in categories], "products": [product.to_dict() for product in products]}
 
-    def order(requests):
+    def order(customerEmail, requests):
         if(requests == None or len(requests) == 0):
             raise BadRequestException("Field requests is missing.")
 
-        productOrders = []
+        CustomerController.validateOrderRequests()
+
+        order = Order(
+            customerEmail=customerEmail, 
+            timestamp=datetime.datetime.now().isoformat(),
+            status="COMPLETE"
+            )
+        database.session.add(order)
+        database.session.commit(order)
+
+        for request in requests:
+            productId = request['id']
+
+            productQuantity = request['quantity']
+
+            product = Product.query.filter(Product.id == productId).first()
+
+            status="COMPLETED"
+            received = 0
+            if(productQuantity < product.quantity):
+                product.quantity -= productQuantity
+                received = productQuantity
+            else:
+                received = product.quantity
+                product.quantity = 0
+                status = 'PENDING'
+            
+            productOrder = ProductOrder(
+                productId=productId,
+                orderId=order.id,
+                price=product.price,
+                received=received,
+                requested=productQuantity,
+                status=status
+            )
+            database.session.add(productOrder)
+            database.session.commit()
+
+        return order.id
+
+    def validateOrderRequests(requests):
+        if(requests == None or len(requests) == 0):
+            raise BadRequestException("Field requests is missing.")
+
         requestCount = 0
         for request in requests:
             productId = request['id']
@@ -49,18 +93,3 @@ class CustomerController ():
             if(product == None):
                 raise BadRequestException(
                     "Invalid product for request number {}.".format(requestCount))
-
-            productOrders.append(
-                {'id': productId, 'quantity': productQuantity})
-
-        order = Order()
-        database.session.add(order)
-        database.session.commit(order)
-
-        for productOrderData in productOrders:
-            productOrder = ProductOrder(
-                productId=productOrderData['id'], orderId=order.id, quantity=productOrderData['quantity'])
-            database.session.add(productOrder)
-        database.session.commit()
-
-        return order.id
