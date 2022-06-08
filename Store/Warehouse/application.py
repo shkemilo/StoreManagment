@@ -15,6 +15,7 @@ application.logger.setLevel(logging.INFO)
 
 jwt = JWTManager(application)
 
+
 @application.route('/')
 def index():
     return 'Hello from the Warehouse Service!'
@@ -30,7 +31,7 @@ def update():
         WarehouseController.update(file)
     except BadRequestException as ex:
         return jsonify(message=str(ex)), http.HTTPStatus.BAD_REQUEST
-    
+
     return http.HTTPStatus.OK
 
 

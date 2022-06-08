@@ -1,5 +1,4 @@
 import json
-import flask
 from redis import Redis
 from Store.Commons.models import Category, Product, ProductCategory, database
 
@@ -63,11 +62,13 @@ class DaemonController():
                     database.session.commit()
 
                     application.logger.info('Update pending ProductOrders.')
-                    pendingProductOrder = product.get_pending_product_orders()[0]
+                    pendingProductOrder = product.get_pending_product_orders()[
+                        0]
                     if(pendingProductOrder == None):
-                        application.logger.info('All orders completed. No need to update.')
+                        application.logger.info(
+                            'All orders completed. No need to update.')
                         continue
-                    
+
                     itemsLeft = pendingProductOrder.requested - pendingProductOrder.received
                     if(itemsLeft < product.quantity):
                         product.quantity -= itemsLeft

@@ -1,7 +1,8 @@
-from email.utils import parseaddr
 import re
-from flask_jwt_extended import create_access_token, create_refresh_token
 from sqlalchemy import and_
+from email.utils import parseaddr
+from flask_jwt_extended import create_access_token, create_refresh_token
+
 from Commons.exceptions import BadRequestException
 from Authentication.models import database, User, UserRole
 

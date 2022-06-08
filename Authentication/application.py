@@ -1,15 +1,16 @@
+import http
 import logging
 from time import sleep
 from flask import Flask, Response, jsonify, request
-from authentication_controller import AuthenticationController
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt, get_jwt_identity
+
 from Commons.exceptions import BadRequestException
 from Commons.role_checker import role_check
-from Authentication.models import database
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt, get_jwt_identity
-from Authentication.configuration import Configuration
-import http
 from sqlalchemy_utils import database_exists, create_database
-from database_init import init_db
+from Authentication.models import database
+from Authentication.configuration import Configuration
+from Authentication.database_init import init_db
+from Authentication.authentication_controller import AuthenticationController
 
 application = Flask(__name__)
 application.config.from_object(Configuration)

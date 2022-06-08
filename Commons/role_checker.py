@@ -1,6 +1,5 @@
-from functools import wraps
 import http
-
+from functools import wraps
 from flask import Response
 from flask_jwt_extended import get_jwt, verify_jwt_in_request
 
