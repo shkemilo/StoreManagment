@@ -90,6 +90,19 @@ services:
       - 5005:5005
     networks:
       - store_network
+  
+  admin:
+    build:
+      context: .
+      dockerfile: admin.dockerfile
+    image: admin
+    restart: always
+    environment:
+      - DATABASE_URL=storeDB
+    ports:
+      - 5006:5006
+    networks:
+      - store_network
 
 volumes:
   authentication-db-data:

@@ -2,8 +2,8 @@ import http
 import logging
 from flask import Flask, jsonify, request
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt
-from Commons.exceptions import BadRequestException
 
+from Commons.exceptions import BadRequestException
 from Commons.role_checker import role_check
 from Store.Commons.models import database
 from Store.Customer.configuration import Configuration
