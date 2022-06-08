@@ -78,6 +78,19 @@ services:
     networks:
       - store_network
 
+  customer:
+    build:
+      context: .
+      dockerfile: customer.dockerfile
+    image: customer
+    restart: always
+    environment:
+      - DATABASE_URL=storeDB
+    ports:
+      - 5005:5005
+    networks:
+      - store_network
+
 volumes:
   authentication-db-data:
   store-db-data:
