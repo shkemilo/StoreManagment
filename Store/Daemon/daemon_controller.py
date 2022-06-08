@@ -62,5 +62,21 @@ class DaemonController():
                     product.quantity += quantity
                     database.session.commit()
 
+                    application.logger.info('Update pending ProductOrders.')
+                    pendingProductOrder = product.get_pending_product_orders()[0]
+                    if(pendingProductOrder == None):
+                        application.logger.info('All orders completed. No need to update.')
+                        continue
+                    
+                    itemsLeft = pendingProductOrder.requested - pendingProductOrder.received
+                    if(itemsLeft < product.quantity):
+                        product.quantity -= itemsLeft
+                        pendingProductOrder.received = pendingProductOrder.requested
+                    else:
+                        pendingProductOrder.received = pendingProductOrder.received + product.quantity
+                        product.quantity = 0
+
+                    database.session.commit()
+
     def calculateNewPrice(currentQuantity, currentPrice, deliveredQuantity, deliveredPrice):
         return (currentQuantity * currentPrice + deliveredQuantity * deliveredPrice) / (currentQuantity + deliveredQuantity)

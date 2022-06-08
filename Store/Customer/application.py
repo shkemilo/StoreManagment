@@ -49,11 +49,16 @@ def order():
 
     return jsonify(id=result), http.HTTPStatus.OK
 
+
 @application.route('/status', methods=['POST'])
 @jwt_required()
 @role_check(role="customer")
 def status():
-    pass
+    customerEmail = get_jwt()['email']
+
+    result = CustomerController.status(customerEmail)
+
+    return jsonify(orders=result), http.HTTPStatus.OK
 
 
 if (__name__ == "__main__"):

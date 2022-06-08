@@ -1,5 +1,5 @@
-from unicodedata import category
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import and_
 
 database = SQLAlchemy()
 
@@ -29,7 +29,20 @@ class ProductOrder (database.Model):
     received = database.Column(database.Integer, nullable=False)
     requested = database.Column(database.Integer, nullable=False)
 
-    status = database.Column(database.String(256), nullable=False)
+    def is_completed(self):
+        return self.received == self.requested
+
+    def to_dict(self):
+        product = Product.query.filter(
+            ProductOrder.productId == self.productId).first()
+        return {
+            "categories": product.categories,
+            "id": self.productId,
+            "name": product.name,
+            "price": self.price,
+            "received": self.received,
+            "requested": self.request
+        }
 
 
 class Product (database.Model):
@@ -52,6 +65,12 @@ class Product (database.Model):
             "categories": [category.name for category in self.categories],
             "id": self.id, "name": self.name,
             "price": self.price, "quantity": self.quantity}
+
+    def get_product_orders(self):
+        return ProductOrder.query.filter(ProductOrder.productId == self.id).all()
+
+    def get_pending_product_orders(self):
+        return ProductOrder.query.filter(and_(ProductOrder.productId == self.id, ProductOrder.received == ProductOrder.requested)).all()
 
 
 class Category (database.Model):
@@ -76,3 +95,26 @@ class Order (database.Model):
 
     products = database.relationship(
         "Product", secondary=ProductOrder.__table__, back_populates="orders")
+
+    def get_product_orders(self):
+        return ProductOrder.query.filter(ProductOrder.orderId == self.id).all()
+
+    def get_pending_product_orders(self):
+        return ProductOrder.query.filter(and_(ProductOrder.orderId == self.id, ProductOrder.received == ProductOrder.requested)).all()
+
+    def get_status(self):
+        return "COMPLETED" if (len(self.get_pending_product_orders()) == 0) else "PENDING"
+
+    def get_price(self):
+        price = 0
+        for productOrder in self.get_product_orders():
+            price += productOrder.price
+        return price
+
+    def to_dict(self):
+        return {
+            "products": [productOrder.to_dict() for productOrder in self.get_product_orders()],
+            "price": self.get_price(),
+            "status": self.get_status(),
+            "timestamp": self.timestamp
+        }

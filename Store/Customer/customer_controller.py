@@ -28,10 +28,10 @@ class CustomerController ():
         CustomerController.validateOrderRequests()
 
         order = Order(
-            customerEmail=customerEmail, 
+            customerEmail=customerEmail,
             timestamp=datetime.datetime.now().isoformat(),
             status="COMPLETE"
-            )
+        )
         database.session.add(order)
         database.session.commit(order)
 
@@ -42,7 +42,6 @@ class CustomerController ():
 
             product = Product.query.filter(Product.id == productId).first()
 
-            status="COMPLETED"
             received = 0
             if(productQuantity < product.quantity):
                 product.quantity -= productQuantity
@@ -50,20 +49,21 @@ class CustomerController ():
             else:
                 received = product.quantity
                 product.quantity = 0
-                status = 'PENDING'
-            
+
             productOrder = ProductOrder(
                 productId=productId,
                 orderId=order.id,
                 price=product.price,
                 received=received,
-                requested=productQuantity,
-                status=status
+                requested=productQuantity
             )
             database.session.add(productOrder)
             database.session.commit()
 
         return order.id
+
+    def status(customerEmail):
+        return [order.to_dict() for order in Order.query.filter(Order.customerEmail == customerEmail).all()]
 
     def validateOrderRequests(requests):
         if(requests == None or len(requests) == 0):
@@ -93,3 +93,5 @@ class CustomerController ():
             if(product == None):
                 raise BadRequestException(
                     "Invalid product for request number {}.".format(requestCount))
+
+            requestCount += 1
