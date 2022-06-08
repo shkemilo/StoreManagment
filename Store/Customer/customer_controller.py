@@ -82,11 +82,11 @@ class CustomerController ():
                 raise BadRequestException(
                     "Product quantity is missing for request number {}.".format(requestCount))
 
-            if(not isdigit(productId)):
+            if(not productId.isdigit()):
                 raise BadRequestException(
                     "Invalid product id for request number {}.".format(requestCount))
 
-            if(not isdigit(productQuantity)):
+            if(not productQuantity.isdigit()):
                 raise BadRequestException(
                     "Invalid product quantity for request number {}.".format(requestCount))
 

@@ -22,10 +22,10 @@ def index():
     return 'Hello from the Customer Service!'
 
 
-@application.route('/serach', methods=['GET'])
+@application.route('/search', methods=['GET'])
 @jwt_required()
 @role_check(role="customer")
-def serach():
+def search():
     productName = request.args.get('name', None)
     categoryName = request.args.get('category', None)
 

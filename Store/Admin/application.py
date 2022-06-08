@@ -1,8 +1,10 @@
+import http
 import logging
-from flask import Flask
-from flask_jwt_extended import JWTManager
+from flask import Flask, jsonify
+from flask_jwt_extended import JWTManager, jwt_required
 
 from Commons.role_checker import role_check
+from Store.Admin.admin_controller import AdminController
 from Store.Admin.configuration import Configuration
 from Store.Commons.models import database
 
@@ -17,6 +19,24 @@ jwt = JWTManager(application)
 @application.route('/')
 def index():
     return 'Hello from the Admin Service!'
+
+
+@application.route('/productStatistics', methods=['GET'])
+@jwt_required()
+@role_check(role="admin")
+def productStatistics():
+    result = AdminController.productStatistics()
+
+    return jsonify(statistics=result), http.HTTPStatus.OK
+
+
+@application.route('/categoryStatistics', methods=['GET'])
+@jwt_required()
+@role_check(role="admin")
+def categoryStatistics():
+    result = AdminController.categoryStatistics()
+
+    return jsonify(statistics=result), http.HTTPStatus.OK
 
 
 if (__name__ == "__main__"):
