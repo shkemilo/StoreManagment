@@ -1,8 +1,11 @@
 from curses.ascii import isdigit
 from datetime import datetime
+import flask
+
+from sqlalchemy import and_
 
 from Commons.exceptions import BadRequestException
-from Store.Commons.models import Category, Order, Product, ProductOrder, database
+from Store.Commons.models import Category, Order, Product, ProductCategory, ProductOrder, database
 
 
 class CustomerController ():
@@ -11,15 +14,15 @@ class CustomerController ():
         if (productName == None):
             productName = ""
         productSearchPattern = "%{}%".format(productName)
-        products = Product.query.filter(
-            Product.name.like(productSearchPattern)).all()
 
         if (categoryName == None):
             categoryName = ""
         categorySearchPattern = "%{}%".format(categoryName)
-        categories = Category.query.filter(
-            Category.name.like(categorySearchPattern)).all()
 
+        # Probably could have been done with just one querry
+        products = Product.query.join(ProductCategory).join(Category).filter( and_(Category.name.like(categorySearchPattern), Product.name.like(productSearchPattern))).all()
+        categories = Category.query.join(ProductCategory).join(Product).filter( and_(Category.name.like(categorySearchPattern), Product.name.like(productSearchPattern))).all()
+        
         return {"categories": [category.name for category in categories], "products": [product.to_dict() for product in products]}
 
     def order(customerEmail, requests):
