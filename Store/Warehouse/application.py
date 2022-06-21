@@ -1,6 +1,6 @@
 import http
 import logging
-from flask import Flask, jsonify, request
+from flask import Flask, Response, jsonify, request
 from flask_jwt_extended import JWTManager, jwt_required
 
 from Commons.exceptions import BadRequestException
@@ -25,14 +25,17 @@ def index():
 @jwt_required()
 @role_check(role="worker")
 def update():
-    file = request.files['file']
+    try:
+        file = request.files['file']
+    except:
+        file = None
 
     try:
         WarehouseController.update(file)
     except BadRequestException as ex:
         return jsonify(message=str(ex)), http.HTTPStatus.BAD_REQUEST
 
-    return http.HTTPStatus.OK
+    return Response(status=http.HTTPStatus.OK)
 
 
 if (__name__ == "__main__"):

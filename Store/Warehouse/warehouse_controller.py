@@ -22,7 +22,7 @@ class WarehouseController():
         with Redis(host=Configuration.REDIS_HOST) as redis:
             for product in products:
                 redis.rpush(Configuration.REDIS_PRODUCTS_LIST,
-                            json.dump(product))
+                            json.dumps(product))
 
     def getProductsFromFile(reader):
         products = []

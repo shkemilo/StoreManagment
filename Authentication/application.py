@@ -29,7 +29,7 @@ def register():
     password = request.json.get("password", "")
     forename = request.json.get("forename", "")
     surname = request.json.get("surname", "")
-    isCustomer = request.json.get("isCustomer", "")
+    isCustomer = request.json.get("isCustomer", None)
 
     try:
         AuthenticationController.register(
@@ -72,7 +72,7 @@ def refresh():
         "roles": refreshClaims["roles"]
     }
 
-    return Response(create_access_token(identity=identity, additional_claims=additionalClaims), status=http.HTTPStatus.OK)
+    return jsonify(accessToken=create_access_token(identity=identity, additional_claims=additionalClaims)), http.HTTPStatus.OK
 
 
 @application.route("/delete", methods=["POST"])

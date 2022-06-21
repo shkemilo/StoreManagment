@@ -49,4 +49,4 @@ if (__name__ == "__main__"):
     productConsumerThread.daemon = True
     productConsumerThread.start()
 
-    application.run(debug=True, host="0.0.0.0", port=5004)
+    application.run(debug=False, host="0.0.0.0", port=5004)

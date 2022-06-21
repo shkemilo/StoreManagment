@@ -58,7 +58,7 @@ class Product (database.Model):
         "Category", secondary=ProductCategory.__table__, back_populates="products")
 
     orders = database.relationship(
-        "Product", secondary=ProductOrder.__table__, back_populates="products")
+        "Order", secondary=ProductOrder.__table__, back_populates="products")
 
     def to_dict(self):
         return {

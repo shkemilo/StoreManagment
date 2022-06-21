@@ -1,6 +1,5 @@
 import re
 from sqlalchemy import and_
-from email.utils import parseaddr
 from flask_jwt_extended import create_access_token, create_refresh_token
 
 from Commons.exceptions import BadRequestException
@@ -8,6 +7,11 @@ from Authentication.models import database, User, UserRole
 
 
 class AuthenticationController ():
+
+    EMAIL_REGEX = re.compile(r"^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$")
+    PASSWORD_REGEX = re.compile(
+        r"^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$")
+
     def register(forename: str, surname: str, email: str, password: str, isCustomer: bool):
         if(forename == None or len(forename) == 0):
             raise BadRequestException("Field forename is missing.")
@@ -20,14 +24,10 @@ class AuthenticationController ():
         if(isCustomer == None):
             raise BadRequestException("Field isCustomer is missing.")
 
-        parsedEmail = parseaddr(email)
-        if (len(parsedEmail[1]) == 0):
+        if (not AuthenticationController.EMAIL_REGEX.match(email)):
             raise BadRequestException("Invalid email.")
 
-        passwordOk = re.fullmatch(
-            r'^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$',
-            password)
-        if(not passwordOk):
+        if(not AuthenticationController.PASSWORD_REGEX.match(password)):
             raise BadRequestException("Invalid password.")
 
         emailFound = User.query.filter(User.email == email).first()
@@ -51,8 +51,7 @@ class AuthenticationController ():
         if(password == None or len(password) == 0):
             raise BadRequestException("Field password is missing.")
 
-        parsedEmail = parseaddr(email)
-        if (len(parsedEmail[1]) == 0):
+        if (not AuthenticationController.EMAIL_REGEX.match(email)):
             raise BadRequestException("Invalid email.")
 
         user = User.query.filter(
@@ -78,8 +77,7 @@ class AuthenticationController ():
         if(email == None or len(email) == 0):
             raise BadRequestException("Field email is missing.")
 
-        parsedEmail = parseaddr(email)
-        if (len(parsedEmail[1]) == 0):
+        if (not AuthenticationController.EMAIL_REGEX.match(email)):
             raise BadRequestException("Invalid email.")
 
         targetUser = User.query.filter(User.email == email).first()
