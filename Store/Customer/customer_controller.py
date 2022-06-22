@@ -1,6 +1,4 @@
-from curses.ascii import isdigit
 from datetime import datetime
-import flask
 
 from sqlalchemy import and_
 
@@ -20,24 +18,25 @@ class CustomerController ():
         categorySearchPattern = "%{}%".format(categoryName)
 
         # Probably could have been done with just one querry
-        products = Product.query.join(ProductCategory).join(Category).filter( and_(Category.name.like(categorySearchPattern), Product.name.like(productSearchPattern))).all()
-        categories = Category.query.join(ProductCategory).join(Product).filter( and_(Category.name.like(categorySearchPattern), Product.name.like(productSearchPattern))).all()
-        
+        products = Product.query.join(ProductCategory).join(Category).filter(and_(
+            Category.name.like(categorySearchPattern), Product.name.like(productSearchPattern))).all()
+        categories = Category.query.join(ProductCategory).join(Product).filter(and_(
+            Category.name.like(categorySearchPattern), Product.name.like(productSearchPattern))).all()
+
         return {"categories": [category.name for category in categories], "products": [product.to_dict() for product in products]}
 
     def order(customerEmail, requests):
         if(requests == None or len(requests) == 0):
             raise BadRequestException("Field requests is missing.")
 
-        CustomerController.validateOrderRequests()
+        CustomerController.validateOrderRequests(requests)
 
         order = Order(
             customerEmail=customerEmail,
-            timestamp=datetime.datetime.now().isoformat(),
-            status="COMPLETE"
+            timestamp=datetime.now().isoformat()
         )
         database.session.add(order)
-        database.session.commit(order)
+        database.session.commit()
 
         for request in requests:
             productId = request['id']
@@ -75,21 +74,21 @@ class CustomerController ():
 
         requestCount = 0
         for request in requests:
-            productId = request['id']
-            if(productId == None):
+            if(not 'id' in request):
                 raise BadRequestException(
                     "Product id is missing for request number {}.".format(requestCount))
+            productId = request['id']
 
-            productQuantity = request['quantity']
-            if(productQuantity == None):
+            if(not 'quantity' in request):
                 raise BadRequestException(
                     "Product quantity is missing for request number {}.".format(requestCount))
+            productQuantity = request['quantity']
 
-            if(not productId.isdigit()):
+            if(not isinstance(productId, int) or productId < 0):
                 raise BadRequestException(
                     "Invalid product id for request number {}.".format(requestCount))
 
-            if(not productQuantity.isdigit()):
+            if(not isinstance(productQuantity, int) or productQuantity < 0):
                 raise BadRequestException(
                     "Invalid product quantity for request number {}.".format(requestCount))
 

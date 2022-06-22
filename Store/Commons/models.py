@@ -36,12 +36,12 @@ class ProductOrder (database.Model):
         product = Product.query.filter(
             ProductOrder.productId == self.productId).first()
         return {
-            "categories": product.categories,
+            "categories": [category.name for category in product.categories],
             "id": self.productId,
             "name": product.name,
             "price": self.price,
             "received": self.received,
-            "requested": self.request
+            "requested": self.requested
         }
 
 

@@ -41,7 +41,7 @@ def order():
     requests = request.json.get("requests", "")
     customerEmail = get_jwt()['email']
 
-    result
+    result = None
     try:
         result = CustomerController.order(customerEmail, requests)
     except BadRequestException as ex:
@@ -50,7 +50,7 @@ def order():
     return jsonify(id=result), http.HTTPStatus.OK
 
 
-@application.route('/status', methods=['POST'])
+@application.route('/status', methods=['GET'])
 @jwt_required()
 @role_check(role="customer")
 def status():
