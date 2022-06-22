@@ -37,7 +37,6 @@ class ProductOrder (database.Model):
             ProductOrder.productId == self.productId).first()
         return {
             "categories": [category.name for category in product.categories],
-            "id": self.productId,
             "name": product.name,
             "price": self.price,
             "received": self.received,
