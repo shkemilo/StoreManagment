@@ -1,4 +1,4 @@
-from Store.Commons.models import Product, ProductOrder
+from Store.Commons.models import Category, Product, ProductOrder, database
 
 
 class AdminController():
@@ -7,7 +7,8 @@ class AdminController():
         data = {}
         for productOrder in ProductOrder.query.all():
             productId = productOrder.productId
-            if productId in data:
+
+            if not productId in data:
                 data[productId] = {'sold': productOrder.received,
                                    'waiting': productOrder.requested - productOrder.received}
             else:
@@ -18,37 +19,26 @@ class AdminController():
         statistics = []
         for productId in data:
             statistics.append({
-                'name': Product.query.filter(Product.id == productId).first(),
+                'name': Product.query.filter(Product.id == productId).first().name,
                 'sold': data[productId]['sold'],
                 'waiting': data[productId]['waiting']
             })
 
         return statistics
 
-    def compareCategoryData(item1, item2):
-        if item1[1] < item2[1]:
-            return -1
-        elif item1[1] > item2[1]:
-            return 1
-        elif item1[0] < item2[0]:
-            return -1
-        elif item1[0] > item2[0]:
-            return 1
-        else:
-            return 0
-
     def categoryStatistics():
         data = {}
+        for category in Category.query.all():
+            data[category.name] = 0
+
         for productOrder in ProductOrder.query.all():
             product = Product.query.filter(
                 Product.id == productOrder.productId).first()
+
             for category in product.categories:
-                if category in data:
-                    data[category] += productOrder.received
-                else:
-                    data[category] = productOrder.received
+                data[category.name] += productOrder.received
 
         sortedData = sorted(
-            data.items(), key=AdminController.compareCategoryData)
+            data.items(), key=lambda item: (-item[1], item[0]))
 
-        return sortedData
+        return [item[0] for item in sortedData]

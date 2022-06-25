@@ -1,6 +1,6 @@
 import json
 from redis import Redis
-from Store.Commons.models import Category, Product, ProductCategory, database
+from Store.Commons.models import Category, Order, Product, ProductCategory, ProductOrder, database
 
 from Store.Daemon.configuration import Configuration
 
@@ -51,33 +51,43 @@ class DaemonController():
                 else:
                     application.logger.info('Product in DB. Update product.')
 
-                    if(set([category.name for category in product.categories]) != set(categories)):
+                    categoryNames = set(
+                        [category.name for category in product.categories])
+                    if(categoryNames != set(categories)):
                         application.logger.warning(
                             'Different product categories in input. Discarding product update.')
+                        application.logger.warning(categoryNames)
+                        application.logger.warning(set(categories))
                         continue
+
+                    # Weird hack to update the quantity value
+                    product.quantity = Product.quantity
+                    database.session.commit()
 
                     product.price = DaemonController.calculateNewPrice(
                         product.quantity, product.price, quantity, price)
-                    product.quantity += quantity
+                    product.quantity = Product.quantity + quantity
                     database.session.commit()
 
-                    application.logger.info('Update pending ProductOrders.')
-                    pendingProductOrder = product.get_pending_product_orders()[
-                        0]
-                    if(pendingProductOrder == None):
-                        application.logger.info(
-                            'All orders completed. No need to update.')
-                        continue
+                    pendingProductOrders = product.get_pending_product_orders()
 
-                    itemsLeft = pendingProductOrder.requested - pendingProductOrder.received
-                    if(itemsLeft < product.quantity):
-                        product.quantity -= itemsLeft
-                        pendingProductOrder.received = pendingProductOrder.requested
-                    else:
-                        pendingProductOrder.received = pendingProductOrder.received + product.quantity
-                        product.quantity = 0
+                    for pendingProductOrder in pendingProductOrders:
+                        product.quantity = Product.quantity
+                        pendingProductOrder.received = ProductOrder.received
+                        database.session.commit()
 
-                    database.session.commit()
+                        itemsLeft = pendingProductOrder.requested - pendingProductOrder.received
+                        if(itemsLeft <= product.quantity):
+                            product.quantity = Product.quantity - itemsLeft
+                            pendingProductOrder.received = pendingProductOrder.requested
+                            database.session.commit()
+                        else:
+                            pendingProductOrder.received = ProductOrder.received + product.quantity
+                            product.quantity = 0
+                            database.session.commit()
+                            break
+
+                    application.logger.info("Updated product: " + product.name)
 
     def calculateNewPrice(currentQuantity, currentPrice, deliveredQuantity, deliveredPrice):
         return (currentQuantity * currentPrice + deliveredQuantity * deliveredPrice) / (currentQuantity + deliveredQuantity)

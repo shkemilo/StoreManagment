@@ -34,7 +34,7 @@ class ProductOrder (database.Model):
 
     def to_dict(self):
         product = Product.query.filter(
-            ProductOrder.productId == self.productId).first()
+            Product.id == self.productId).first()
         return {
             "categories": [category.name for category in product.categories],
             "name": product.name,
@@ -69,7 +69,7 @@ class Product (database.Model):
         return ProductOrder.query.filter(ProductOrder.productId == self.id).all()
 
     def get_pending_product_orders(self):
-        return ProductOrder.query.filter(and_(ProductOrder.productId == self.id, ProductOrder.received == ProductOrder.requested)).all()
+        return ProductOrder.query.join(Order).filter(and_(ProductOrder.productId == self.id, ProductOrder.received != ProductOrder.requested)).order_by(Order.timestamp).all()
 
 
 class Category (database.Model):
@@ -99,15 +99,15 @@ class Order (database.Model):
         return ProductOrder.query.filter(ProductOrder.orderId == self.id).all()
 
     def get_pending_product_orders(self):
-        return ProductOrder.query.filter(and_(ProductOrder.orderId == self.id, ProductOrder.received == ProductOrder.requested)).all()
+        return ProductOrder.query.filter(and_(ProductOrder.orderId == self.id, ProductOrder.received != ProductOrder.requested)).order_by(ProductOrder.id).all()
 
     def get_status(self):
-        return "COMPLETED" if (len(self.get_pending_product_orders()) == 0) else "PENDING"
+        return "COMPLETE" if (len(self.get_pending_product_orders()) == 0) else "PENDING"
 
     def get_price(self):
         price = 0
         for productOrder in self.get_product_orders():
-            price += productOrder.price
+            price += productOrder.price * productOrder.requested
         return price
 
     def to_dict(self):
